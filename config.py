@@ -4,7 +4,7 @@ import secrets
 # PostgreSQL database config
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "dbname=musicdb user=postgres password=Aishafarid786 host=localhost port=5432"
+    "dbname=musicdb user=postgres password=xyzpass host=localhost port=5432"
 )
 
 # JWT secret key for secure token generation
