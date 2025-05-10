@@ -3,11 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user.name }}'s Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Profile - {{ user.name }}</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .profile-header {
+            background-color: #282828;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .recommendations, .selected-songs {
+            margin-top: 20px;
+        }
+        .song-card {
+            background-color: #181818;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        a {
+            color: #1db954;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ user.name }}'s Profile</h1>
-    <p>Email: {{ user.email }}</p>
+    <div class="container">
+        <div class="profile-header">
+            <h1>{{ user.name }}'s Profile</h1>
+            <p>Email: {{ user.email }}</p>
+            <a href="/">Back to Home</a>
+        </div>
+        <div class="recommendations">
+            <h2>Recommended Songs</h2>
+            {% for song in recommendations %}
+                <div class="song-card">
+                    <h3>{{ song.title }}</h3>
+                    <p>by {{ song.artist }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 </html>

@@ -1,18 +1,57 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ playlist.name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Playlist - {{ playlist.name }}</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .playlist-header {
+            background-color: #282828;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .song-list {
+            margin-top: 20px;
+        }
+        .song-card {
+            background-color: #181818;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        a {
+            color: #1db954;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ playlist.name }}</h1>
-    <ul>
-        {% for song in playlist.songs %}
-        <li>{{ song.title }} by {{ song.artist }}</li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <div class="playlist-header">
+            <h1>{{ playlist.name }}</h1>
+            <p>{{ playlist.description or 'No description' }}</p>
+            <a href="/">Back to Home</a>
+        </div>
+        <div class="song-list">
+            <h2>Songs</h2>
+            {% for song in playlist.songs %}
+                <div class="song-card">
+                    <h3>{{ song.title }}</h3>
+                    <p>by {{ song.artist }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 </html>

@@ -3,16 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Music App</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #1db954;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .playlists, .song-of-the-day {
+            margin-top: 20px;
+        }
+        .playlist-card, .song-card {
+            background-color: #282828;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        a {
+            color: #1db954;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Music App</h1>
-    <h2>Playlists</h2>
-    <ul>
-        {% for playlist in playlists %}
-        <li><a href="{{ url_for('user.playlist', playlist_id=playlist.id) }}">{{ playlist.name }}</a></li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to Music App</h1>
+            <p><a href="/profile">Profile</a> | <a href="/songs">Browse Songs</a></p>
+        </div>
+        <div class="song-of-the-day">
+            <h2>Song of the Day</h2>
+            {% if song_of_the_day %}
+                <div class="song-card">
+                    <h3>{{ song_of_the_day.title }}</h3>
+                    <p>by {{ song_of_the_day.artist }}</p>
+                </div>
+            {% else %}
+                <p>No song available today.</p>
+            {% endif %}
+        </div>
+        <div class="playlists">
+            <h2>Playlists</h2>
+            {% for playlist in playlists %}
+                <div class="playlist-card">
+                    <a href="/playlist/{{ playlist.id }}">{{ playlist.name }}</a>
+                    <p>{{ playlist.description or 'No description' }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 </html>

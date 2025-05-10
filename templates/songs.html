@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Songs</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .genre-section {
+            margin-top: 20px;
+        }
+        .song-card {
+            background-color: #181818;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button {
+            background-color: #1db954;
+            border: none;
+            padding: 8px 16px;
+            color: #ffffff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #17a34a;
+        }
+        a {
+            color: #1db954;
+            text-decoration: none;
+        }
+    </style>
+    <script>
+        async function selectSong(songId) {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch('/user/select-song', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ song_id: songId })
+            });
+            const result = await response.json();
+            alert(result.msg);
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Browse Songs</h1>
+        <p><a href="/">Back to Home</a></p>
+        {% for genre in genres %}
+            <div class="genre-section">
+                <h2>{{ genre.name }}</h2>
+                {% for song in genre.songs %}
+                    <div class="song-card">
+                        <div>
+                            <h3>{{ song.title }}</h3>
+                            <p>by {{ song.artist }}</p>
+                        </div>
+                        <button onclick="selectSong({{ song.id }})">Select Song</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
