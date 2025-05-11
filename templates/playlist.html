@@ -9,7 +9,29 @@
                 <h4>{{ song.title }}</h4>
                 <p>{{ song.artist }}</p>
                 <a href="{{ url_for('song', song_id=song.id) }}">View</a>
+                {% if current_user and current_user.id == playlist.user_id %}
+                    <button onclick="removeFromPlaylist({{ song.id }}, {{ playlist.id }})">Remove</button>
+                {% endif %}
             </div>
         {% endfor %}
     </div>
+    <script>
+        function removeFromPlaylist(songId, playlistId) {
+            const token = localStorage.getItem('access_token');
+            fetch('/user/add-to-playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ song_id: songId, playlist_id: playlistId, action: 'remove' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.msg);
+                window.location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 {% endblock %}

@@ -2,7 +2,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-# Junction table for many-to-many relationship between playlists and songs
 playlist_songs = db.Table(
     'playlist_songs',
     db.Column('playlist_id', db.Integer, db.ForeignKey('playlists.id'), primary_key=True),
@@ -42,14 +41,16 @@ class Song(db.Model):
     artist = db.Column(db.String(100), nullable=False)
     genre_id = db.Column(db.Integer, db.ForeignKey('genres.id'))
     release_date = db.Column(db.Date)
-    popularity_score = db.Column(db.Integer)  # Constraint handled in DB
+    popularity_score = db.Column(db.Integer)
+    recommendation_score = db.Column(db.Integer, nullable=True)
 
 class UserSong(db.Model):
     __tablename__ = 'user_songs'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     song_id = db.Column(db.Integer, db.ForeignKey('songs.id'), nullable=False)
-    added_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    liked = db.Column(db.Boolean, default=None, nullable=True)
+    added_at = db.Column(db.DateTime, default=db.func.current_timestamp(), index=True)
     song = db.relationship('Song', backref='user_songs')
 
 class Recommendation(db.Model):

@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="section-title">Music Recommendation Questionnaire</div>
+    <div class="form-container">
+        <h2>Tell Us Your Preferences</h2>
+        <form id="questionnaireForm">
+            <div>
+                <label for="mood">What mood are you in?</label>
+                <select name="mood" id="mood" required>
+                    <option value="happy">Happy/Upbeat</option>
+                    <option value="reflective">Reflective/Melancholic</option>
+                    <option value="intense">Intense/Motivated</option>
+                </select>
+            </div>
+            <div>
+                <label for="energy">What energy level do you prefer?</label>
+                <select name="energy" id="energy" required>
+                    <option value="high">High Energy</option>
+                    <option value="medium">Medium Energy</option>
+                    <option value="low">Low Energy</option>
+                </select>
+            </div>
+            <div>
+                <label for="genre">Which genre do you prefer today?</label>
+                <select name="genre" id="genre" required>
+                    <option value="pop">Pop/EDM</option>
+                    <option value="rock">Rock/Hip-Hop</option>
+                    <option value="jazz">Jazz/Classical</option>
+                </select>
+            </div>
+            <button type="submit">Get Recommendation</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('questionnaireForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                mood: this.mood.value,
+                energy: this.energy.value,
+                genre: this.genre.value
+            };
+            const token = localStorage.getItem('access_token');
+            fetch('/user/submit-questionnaire', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.msg) {
+                    alert(data.msg);
+                } else {
+                    alert(`Recommended: ${data.title} by ${data.artist} (${data.reason})`);
+                    window.location.href = `/song/${data.song_id}`;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+{% endblock %}

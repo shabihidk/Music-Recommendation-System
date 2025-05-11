@@ -1,19 +1,64 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="section-title">Browse Songs</div>
-    <div class="song-list">
-        {% for song in songs %}
-            <div class="song-item" style="--delay: {{ loop.index }}">
-                <img src="/static/images/songs/{{ song.id }}.jpg" alt="{{ song.title }} cover" onerror="this.style.display='none'">
-                <h4>{{ song.title }}</h4>
-                <p>{{ song.artist }}</p>
-                <p>Genre: {{ song.genre.name if song.genre else 'Unknown' }}</p>
-                <a href="{{ url_for('song', song_id=song.id) }}">View</a>
-                {% if current_user %}
-                    <button onclick="selectSong({{ song.id }})">Add to My Songs</button>
-                {% endif %}
-            </div>
-        {% endfor %}
+    <div class="section-title">{{ song_data.title }} by {{ song_data.artist }}</div>
+    <div class="card">
+        <img src="/static/images/songs/{{ song_data.id }}.jpg" alt="{{ song_data.title }} cover" onerror="this.style.display='none'" style="max-width: 200px;">
+        <p>Genre: {{ song_data.genre | default('Unknown') }}</p>
+        <p>Release Date: {{ song_data.release_date | default('Unknown') }}</p>
+        <p>Popularity Score: {{ song_data.popularity_score | default('N/A') }}</p>
+        <p>Recommendation Score: {{ song_data.recommendation_score | default('N/A') }}</p>
+        {% if current_user %}
+            <button onclick="likeSong({{ song_data.id }}, true)" {% if liked == True %}disabled{% endif %}>Like</button>
+            <button onclick="likeSong({{ song_data.id }}, false)" {% if liked == False %}disabled{% endif %}>Dislike</button>
+            {% if current_user.playlists %}
+                <div>
+                    <label for="playlist-select">Add to Playlist:</label>
+                    <select id="playlist-select-{{ song_data.id }}">
+                        {% for playlist in current_user.playlists %}
+                            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="addToPlaylist({{ song_data.id }})">Add</button>
+                </div>
+            {% endif %}
+        {% endif %}
     </div>
+    <script>
+        function likeSong(songId, liked) {
+            const token = localStorage.getItem('access_token');
+            fetch('/user/like-song', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ song_id: songId, liked: liked })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.msg);
+                window.location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function addToPlaylist(songId) {
+            const playlistId = document.getElementById('playlist-select-' + songId).value;
+            const token = localStorage.getItem('access_token');
+            fetch('/user/add-to-playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ song_id: songId, playlist_id: playlistId, action: 'add' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.msg);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 {% endblock %}

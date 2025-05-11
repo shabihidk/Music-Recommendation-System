@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="section-title">Browse Songs</div>
+    <div class="song-list">
+        {% for song in songs %}
+            <div class="song-item" style="--delay: {{ loop.index }}">
+                <img src="/static/images/songs/{{ song.id }}.jpg" alt="{{ song.title }} cover" onerror="this.style.display='none'">
+                <h4>{{ song.title }}</h4>
+                <p>{{ song.artist }}</p>
+                <p>Genre: {{ song.genre.name if song.genre else 'Unknown' }}</p>
+                <a href="{{ url_for('song', song_id=song.id) }}">View</a>
+                {% if current_user %}
+                    <button onclick="selectSong({{ song.id }})">Add to My Songs</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

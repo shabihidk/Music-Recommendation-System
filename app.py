@@ -3,19 +3,19 @@ from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, verif
 from models import db, User, Playlist, Song, Recommendation, SongOfTheDay, Genre, UserSong, UserGenrePreference
 from auth_routes import auth
 from user_routes import user
+from db import init_db
 from functools import wraps
 import random
 from datetime import date
 
 app = Flask(__name__)
 app.config.from_object('config')
-db.init_app(app)
+init_db(app)
 jwt = JWTManager(app)
 
 app.register_blueprint(auth, url_prefix='/auth')
 app.register_blueprint(user, url_prefix='/user')
 
-# JWT optional decorator
 def jwt_optional(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -26,7 +26,6 @@ def jwt_optional(fn):
             return fn(*args, **kwargs)
     return wrapper
 
-# Context processor for current_user
 @app.context_processor
 def inject_user():
     try:
@@ -36,7 +35,6 @@ def inject_user():
     except:
         return {'current_user': None}
 
-# Home route
 @app.route('/')
 @jwt_optional
 def home():
@@ -47,7 +45,6 @@ def home():
     popular_genres = Genre.query.all()
     return render_template('index.html', playlists=playlists, song_of_the_day=song_data, trending_songs=trending_songs, popular_genres=popular_genres)
 
-# Songs route
 @app.route('/songs')
 @jwt_optional
 def songs():
@@ -55,40 +52,47 @@ def songs():
     songs = Song.query.all()
     return render_template('songs.html', genres=genres, songs=songs)
 
-# First login song selection
 @app.route('/first-login')
 @jwt_required()
 def first_login():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
-    if user.selected_songs:  # If user already has selected songs, redirect to home
+    if user.selected_songs:
         return redirect(url_for('home'))
-    songs = Song.query.order_by(Song.popularity_score.desc()).limit(10).all()  # Show top 10 popular songs
+    songs = Song.query.order_by(Song.popularity_score.desc()).limit(10).all()
     return render_template('first_login.html', songs=songs)
 
-# Profile route
 @app.route('/profile')
 @jwt_required()
 def profile():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
     if user:
-        generate_recommendations(user_id)  # Generate new recommendations if needed
+        generate_recommendations(user_id)
         recommendations = Recommendation.query.filter_by(user_id=user_id).all()
         selected_songs = UserSong.query.filter_by(user_id=user_id).all()
         return render_template('profile.html', user=user, recommendations=recommendations, selected_songs=selected_songs)
     return "User not found", 404
 
-# Song route
 @app.route('/song/<int:song_id>')
-@jwt_optional
+@jwt_required()
 def song(song_id):
     song = Song.query.get(song_id)
     if song:
-        return render_template('song.html', song=song)
+        song_data = {
+            "id": song.id,
+            "title": song.title,
+            "artist": song.artist,
+            "genre": song.genre.name if song.genre else None,
+            "release_date": song.release_date,
+            "popularity_score": song.popularity_score,
+            "recommendation_score": song.recommendation_score
+        }
+        user_song = UserSong.query.filter_by(user_id=get_jwt_identity(), song_id=song.id).first()
+        liked = user_song.liked if user_song else None
+        return render_template('song.html', song=song, song_data=song_data, liked=liked)
     return "Song not found", 404
 
-# Playlist route
 @app.route('/playlist/<int:playlist_id>')
 @jwt_optional
 def playlist(playlist_id):
@@ -97,9 +101,16 @@ def playlist(playlist_id):
         return render_template('playlist.html', playlist=playlist)
     return "Playlist not found", 404
 
-# Helper functions
+@app.route('/questionnaire')
+@jwt_required()
+def questionnaire():
+    return render_template('questionnaire.html')
+
 def get_playlists_from_db():
-    return Playlist.query.all()
+    user_id = get_jwt_identity()
+    if user_id:
+        return Playlist.query.filter_by(user_id=user_id).all()
+    return []
 
 def get_song_of_the_day():
     today = date.today()
@@ -118,13 +129,10 @@ def generate_recommendations(user_id):
     user = User.query.get(user_id)
     if not user:
         return
-    # Get user's genre preferences
     preferences = UserGenrePreference.query.filter_by(user_id=user_id).all()
     if not preferences:
         return
-    # Get songs the user hasn't selected yet
     selected_song_ids = [us.song_id for us in UserSong.query.filter_by(user_id=user_id).all()]
-    # Recommend based on genre preferences and popularity
     for pref in preferences:
         songs = Song.query.filter(
             Song.genre_id == pref.genre_id,
