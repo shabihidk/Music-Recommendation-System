@@ -4,13 +4,12 @@ from config import DATABASE_URL
 
 # Initialize connection pool
 try:
-    db_pool = psycopg2.pool.SimpleConnectionPool(
-        1, 20, dsn=DATABASE_URL
-    )
+    db_pool = psycopg2.pool.SimpleConnectionPool(1, 20, dsn=DATABASE_URL)
     if db_pool:
         print("Connection pool created successfully")
 except Exception as e:
     print(f"Error creating connection pool: {e}")
+    exit(1)
 
 def get_db_connection():
     try:
@@ -22,6 +21,7 @@ def get_db_connection():
 
 def release_db_connection(conn):
     try:
-        db_pool.putconn(conn)
+        if conn:
+            db_pool.putconn(conn)
     except Exception as e:
         print(f"Error releasing connection: {e}")

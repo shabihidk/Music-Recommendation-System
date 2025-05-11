@@ -1,95 +1,145 @@
-from flask import Flask, render_template, jsonify
-from flask_jwt_extended import JWTManager, get_jwt_identity, jwt_required
-from flask_sqlalchemy import SQLAlchemy
-from config import JWT_SECRET_KEY, DATABASE_URL
+from flask import Flask, render_template, redirect, url_for
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, verify_jwt_in_request
+from models import db, User, Playlist, Song, Recommendation, SongOfTheDay, Genre, UserSong, UserGenrePreference
 from auth_routes import auth
 from user_routes import user
-from models import db, User, Playlist, Song, Genre, UserSong
+from functools import wraps
 import random
-from datetime import datetime
+from datetime import date
 
 app = Flask(__name__)
-
-# Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
-
-# Initialize extensions
+app.config.from_object('config')
 db.init_app(app)
 jwt = JWTManager(app)
 
-# Register blueprints
 app.register_blueprint(auth, url_prefix='/auth')
 app.register_blueprint(user, url_prefix='/user')
 
-# Initialize database
-with app.app_context():
-    db.create_all()
+# JWT optional decorator
+def jwt_optional(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            verify_jwt_in_request(optional=True)
+            return fn(*args, **kwargs)
+        except:
+            return fn(*args, **kwargs)
+    return wrapper
 
-# Helper Functions
-def get_playlists_from_db():
-    playlists = Playlist.query.all()
-    return [{'id': p.id, 'name': p.name, 'description': p.description} for p in playlists]
+# Context processor for current_user
+@app.context_processor
+def inject_user():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id) if user_id else None
+        return {'current_user': user}
+    except:
+        return {'current_user': None}
 
-def get_playlist_by_id(playlist_id):
-    playlist = Playlist.query.get(playlist_id)
-    if playlist:
-        songs = [{'id': s.id, 'title': s.title, 'artist': s.artist} for s in playlist.songs]
-        return {'id': playlist.id, 'name': playlist.name, 'description': playlist.description, 'songs': songs}
-    return None
-
-def get_user_info(user_id):
-    user = User.query.get(user_id)
-    if user:
-        return {'id': user.id, 'name': user.name, 'email': user.email}
-    return None
-
-def get_random_song_of_the_day():
-    songs = Song.query.all()
-    if songs:
-        return random.choice(songs)
-    return None
-
-def get_ai_recommendations(user_id):
-    # Placeholder for AI API integration (e.g., Spotify API or custom AI model)
-    user_songs = UserSong.query.filter_by(user_id=user_id).all()
-    genres = set([s.song.genre.name for s in user_songs])
-    if not genres:
-        genres = ['Pop']  # Default genre
-    recommended_songs = Song.query.filter(Song.genre.has(Genre.name.in_(genres))).limit(5).all()
-    return [{'id': s.id, 'title': s.title, 'artist': s.artist} for s in recommended_songs]
-
-# Routes
+# Home route
 @app.route('/')
+@jwt_optional
 def home():
     playlists = get_playlists_from_db()
-    song_of_the_day = get_random_song_of_the_day()
-    song_data = {'id': song_of_the_day.id, 'title': song_of_the_day.title, 'artist': song_of_the_day.artist} if song_of_the_day else None
-    return render_template('index.html', playlists=playlists, song_of_the_day=song_data)
+    song_of_the_day = get_song_of_the_day()
+    song_data = {'id': song_of_the_day.song.id, 'title': song_of_the_day.song.title, 'artist': song_of_the_day.song.artist} if song_of_the_day else None
+    trending_songs = Song.query.order_by(Song.popularity_score.desc()).limit(5).all()
+    popular_genres = Genre.query.all()
+    return render_template('index.html', playlists=playlists, song_of_the_day=song_data, trending_songs=trending_songs, popular_genres=popular_genres)
 
-@app.route('/playlist/<int:playlist_id>')
-def playlist(playlist_id):
-    playlist = get_playlist_by_id(playlist_id)
-    if playlist:
-        return render_template('playlist.html', playlist=playlist)
-    return "Playlist not found", 404
-
-@app.route('/profile')
-@jwt_required()
-def profile():
-    user_id = get_jwt_identity()
-    user_info = get_user_info(user_id)
-    if user_info:
-        recommendations = get_ai_recommendations(user_id)
-        return render_template('profile.html', user=user_info, recommendations=recommendations)
-    return "User not found", 404
-
+# Songs route
 @app.route('/songs')
+@jwt_optional
 def songs():
     genres = Genre.query.all()
     songs = Song.query.all()
     return render_template('songs.html', genres=genres, songs=songs)
+
+# First login song selection
+@app.route('/first-login')
+@jwt_required()
+def first_login():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if user.selected_songs:  # If user already has selected songs, redirect to home
+        return redirect(url_for('home'))
+    songs = Song.query.order_by(Song.popularity_score.desc()).limit(10).all()  # Show top 10 popular songs
+    return render_template('first_login.html', songs=songs)
+
+# Profile route
+@app.route('/profile')
+@jwt_required()
+def profile():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if user:
+        generate_recommendations(user_id)  # Generate new recommendations if needed
+        recommendations = Recommendation.query.filter_by(user_id=user_id).all()
+        selected_songs = UserSong.query.filter_by(user_id=user_id).all()
+        return render_template('profile.html', user=user, recommendations=recommendations, selected_songs=selected_songs)
+    return "User not found", 404
+
+# Song route
+@app.route('/song/<int:song_id>')
+@jwt_optional
+def song(song_id):
+    song = Song.query.get(song_id)
+    if song:
+        return render_template('song.html', song=song)
+    return "Song not found", 404
+
+# Playlist route
+@app.route('/playlist/<int:playlist_id>')
+@jwt_optional
+def playlist(playlist_id):
+    playlist = Playlist.query.get(playlist_id)
+    if playlist:
+        return render_template('playlist.html', playlist=playlist)
+    return "Playlist not found", 404
+
+# Helper functions
+def get_playlists_from_db():
+    return Playlist.query.all()
+
+def get_song_of_the_day():
+    today = date.today()
+    sotd = SongOfTheDay.query.filter_by(date=today).first()
+    if not sotd:
+        songs = Song.query.all()
+        if songs:
+            song = random.choice(songs)
+            sotd = SongOfTheDay(date=today, song_id=song.id)
+            db.session.add(sotd)
+            db.session.commit()
+            return sotd
+    return sotd
+
+def generate_recommendations(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return
+    # Get user's genre preferences
+    preferences = UserGenrePreference.query.filter_by(user_id=user_id).all()
+    if not preferences:
+        return
+    # Get songs the user hasn't selected yet
+    selected_song_ids = [us.song_id for us in UserSong.query.filter_by(user_id=user_id).all()]
+    # Recommend based on genre preferences and popularity
+    for pref in preferences:
+        songs = Song.query.filter(
+            Song.genre_id == pref.genre_id,
+            Song.id.notin_(selected_song_ids)
+        ).order_by(Song.popularity_score.desc()).limit(2).all()
+        for song in songs:
+            existing = Recommendation.query.filter_by(user_id=user_id, song_id=song.id).first()
+            if not existing:
+                rec = Recommendation(
+                    user_id=user_id,
+                    song_id=song.id,
+                    reason=f"Recommended based on your interest in {pref.genre.name}"
+                )
+                db.session.add(rec)
+    db.session.commit()
 
 if __name__ == '__main__':
     app.run(debug=True)

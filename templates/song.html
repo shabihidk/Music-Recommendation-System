@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="section-title">{{ song.title }} by {{ song.artist }}</div>
+    <p>Genre: {{ song.genre.name }}</p>
+    {% if song.release_date %}
+        <p>Released: {{ song.release_date }}</p>
+    {% endif %}
+    {% if song.popularity_score %}
+        <p>Popularity: {{ song.popularity_score }}</p>
+    {% endif %}
+    {% if current_user %}
+        <button onclick="selectSong({{ song.id }})">Add to My Songs</button>
+    {% endif %}
+
+    <script>
+        async function selectSong(songId) {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch('/user/select-song', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ song_id: songId })
+            });
+            const result = await response.json();
+            alert(result.msg);
+        }
+    </script>
+{% endblock %}

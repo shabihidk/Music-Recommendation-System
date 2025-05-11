@@ -1,0 +1,45 @@
+/* Custom styles for Music Recommendation System */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand img {
+    height: 40px;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #007bff, #6610f2);
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+    border-radius: 0 0 20px 20px;
+}
+
+.card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+footer {
+    background-color: #343a40;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    margin-top: 40px;
+}

@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="section-title">Welcome! Let's Get Started</div>
+    <p>Select some songs to personalize your experience:</p>
+    <div class="song-list">
+        {% for song in songs %}
+            <div class="song-item">
+                <h4>{{ song.title }}</h4>
+                <p>{{ song.artist }}</p>
+                <button onclick="selectSong({{ song.id }})">Select</button>
+            </div>
+        {% endfor %}
+    </div>
+    <a href="{{ url_for('home') }}"><button>Finish</button></a>
+
+    <script>
+        async function selectSong(songId) {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch('/user/select-song', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ song_id: songId })
+            });
+            const result = await response.json();
+            alert(result.msg);
+        }
+    </script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, User, Playlist, Song, UserSong
+from models import db, User, Playlist, Song, UserSong, Recommendation, UserGenrePreference
 
 user = Blueprint('user', __name__)
 
@@ -58,3 +58,43 @@ def get_selected_songs():
     user_songs = UserSong.query.filter_by(user_id=user_id).all()
     songs = [{"id": s.song.id, "title": s.song.title, "artist": s.song.artist} for s in user_songs]
     return jsonify(songs), 200
+
+@user.route('/recommendations', methods=['GET'])
+@jwt_required()
+def get_recommendations():
+    user_id = get_jwt_identity()
+    recommendations = Recommendation.query.filter_by(user_id=user_id).all()
+    return jsonify([{"song_id": r.song_id, "title": r.song.title, "artist": r.song.artist, "reason": r.reason} for r in recommendations]), 200
+
+@user.route('/genre-preferences', methods=['POST'])
+@jwt_required()
+def set_genre_preference():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    genre_id = data.get('genre_id')
+    weight = data.get('weight', 1)
+    preference = UserGenrePreference.query.filter_by(user_id=user_id, genre_id=genre_id).first()
+    if preference:
+        preference.weight = weight
+    else:
+        preference = UserGenrePreference(user_id=user_id, genre_id=genre_id, weight=weight)
+        db.session.add(preference)
+    db.session.commit()
+    return jsonify({"msg": "Genre preference updated"}), 200
+
+@user.route('/add-to-playlist', methods=['POST'])
+@jwt_required()
+def add_to_playlist():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    playlist_id = data.get('playlist_id')
+    song_id = data.get('song_id')
+    playlist = Playlist.query.filter_by(id=playlist_id, user_id=user_id).first()
+    song = Song.query.get(song_id)
+    if not playlist or not song:
+        return jsonify({"msg": "Playlist or song not found"}), 404
+    if song in playlist.songs:
+        return jsonify({"msg": "Song already in playlist"}), 400
+    playlist.songs.append(song)
+    db.session.commit()
+    return jsonify({"msg": "Song added to playlist"}), 200

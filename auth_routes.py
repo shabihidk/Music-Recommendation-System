@@ -1,55 +1,54 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Song, UserSong
-import random
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from models import db, User
+from werkzeug.security import check_password_hash, generate_password_hash
 
 auth = Blueprint('auth', __name__)
+
+# Token blacklist for logout
+blacklist = set()
 
 @auth.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not all([data.get('name'), data.get('email'), data.get('password')]):
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not username or not email or not password:
         return jsonify({"msg": "Missing required fields"}), 400
 
-    existing_user = User.query.filter_by(email=data.get('email')).first()
-    if existing_user:
-        return jsonify({"msg": "User already exists"}), 400
+    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+        return jsonify({"msg": "Username or email already exists"}), 400
 
-    hashed_password = generate_password_hash(data.get('password'), method='sha256')
-    new_user = User(name=data.get('name'), email=data.get('email'), password=hashed_password)
-    db.session.add(new_user)
+    user = User(
+        username=username,
+        email=email,
+        password_hash=generate_password_hash(password)
+    )
+    db.session.add(user)
     db.session.commit()
-
-    # Assign initial random songs
-    songs = Song.query.all()
-    if songs:
-        random_songs = random.sample(songs, min(5, len(songs)))
-        for song in random_songs:
-            user_song = UserSong(user_id=new_user.id, song_id=song.id)
-            db.session.add(user_song)
-        db.session.commit()
-
     return jsonify({"msg": "User registered successfully"}), 201
 
 @auth.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    if not all([data.get('email'), data.get('password')]):
-        return jsonify({"msg": "Missing required fields"}), 400
+    email = data.get('email')
+    password = data.get('password')
 
-    user = User.query.filter_by(email=data.get('email')).first()
-    if not user or not check_password_hash(user.password, data.get('password')):
-        return jsonify({"msg": "Invalid credentials"}), 401
+    user = User.query.filter_by(email=email).first()
+    if user and check_password_hash(user.password_hash, password):
+        access_token = create_access_token(identity=user.id)
+        return jsonify({"access_token": access_token}), 200
+    return jsonify({"msg": "Invalid credentials"}), 401
 
-    access_token = create_access_token(identity=user.id)
-    return jsonify({"access_token": access_token}), 200
-
-@auth.route('/current', methods=['GET'])
+@auth.route('/logout', methods=['POST'])
 @jwt_required()
-def current_user():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    if user:
-        return jsonify({"id": user.id, "name": user.name, "email": user.email}), 200
-    return jsonify({"msg": "User not found"}), 404
+def logout():
+    jti = get_jwt()['jti']
+    blacklist.add(jti)
+    return jsonify({"msg": "Logged out successfully"}), 200
+
+# Check if token is blacklisted
+def is_token_blacklisted(jti):
+    return jti in blacklist

@@ -1,71 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music App</title>
-    <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .header {
-            background-color: #1db954;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .playlists, .song-of-the-day {
-            margin-top: 20px;
-        }
-        .playlist-card, .song-card {
-            background-color: #282828;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-        }
-        a {
-            color: #1db954;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Welcome to Music App</h1>
-            <p><a href="/profile">Profile</a> | <a href="/songs">Browse Songs</a></p>
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="section-title">Song of the Day</div>
+    {% if song_of_the_day %}
+        <div class="card">
+            <h3>{{ song_of_the_day.title }} by {{ song_of_the_day.artist }}</h3>
         </div>
-        <div class="song-of-the-day">
-            <h2>Song of the Day</h2>
-            {% if song_of_the_day %}
-                <div class="song-card">
-                    <h3>{{ song_of_the_day.title }}</h3>
-                    <p>by {{ song_of_the_day.artist }}</p>
-                </div>
-            {% else %}
-                <p>No song available today.</p>
-            {% endif %}
-        </div>
-        <div class="playlists">
-            <h2>Playlists</h2>
-            {% for playlist in playlists %}
-                <div class="playlist-card">
-                    <a href="/playlist/{{ playlist.id }}">{{ playlist.name }}</a>
-                    <p>{{ playlist.description or 'No description' }}</p>
-                </div>
-            {% endfor %}
-        </div>
+    {% else %}
+        <p>No Song of the Day available.</p>
+    {% endif %}
+
+    <div class="section-title">Trending Songs</div>
+    <div class="song-list">
+        {% for song in trending_songs %}
+            <div class="song-item">
+                <h4>{{ song.title }}</h4>
+                <p>{{ song.artist }}</p>
+                <a href="{{ url_for('song', song_id=song.id) }}">View</a>
+            </div>
+        {% endfor %}
     </div>
-</body>
-</html>
+
+    <div class="section-title">Popular Genres</div>
+    <div class="genre-list">
+        {% for genre in popular_genres %}
+            <div class="genre-item">
+                <h4>{{ genre.name }}</h4>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="section-title">Your Playlists</div>
+    {% for playlist in playlists %}
+        <div class="card">
+            <h3>{{ playlist.name }}</h3>
+            <p>{{ playlist.description }}</p>
+            <a href="{{ url_for('playlist', playlist_id=playlist.id) }}">View Playlist</a>
+        </div>
+    {% endfor %}
+{% endblock %}
