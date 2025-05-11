@@ -1,31 +1,19 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="section-title">{{ song.title }} by {{ song.artist }}</div>
-    <p>Genre: {{ song.genre.name }}</p>
-    {% if song.release_date %}
-        <p>Released: {{ song.release_date }}</p>
-    {% endif %}
-    {% if song.popularity_score %}
-        <p>Popularity: {{ song.popularity_score }}</p>
-    {% endif %}
-    {% if current_user %}
-        <button onclick="selectSong({{ song.id }})">Add to My Songs</button>
-    {% endif %}
-
-    <script>
-        async function selectSong(songId) {
-            const token = localStorage.getItem('access_token');
-            const response = await fetch('/user/select-song', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ song_id: songId })
-            });
-            const result = await response.json();
-            alert(result.msg);
-        }
-    </script>
+    <div class="section-title">Browse Songs</div>
+    <div class="song-list">
+        {% for song in songs %}
+            <div class="song-item" style="--delay: {{ loop.index }}">
+                <img src="/static/images/songs/{{ song.id }}.jpg" alt="{{ song.title }} cover" onerror="this.style.display='none'">
+                <h4>{{ song.title }}</h4>
+                <p>{{ song.artist }}</p>
+                <p>Genre: {{ song.genre.name if song.genre else 'Unknown' }}</p>
+                <a href="{{ url_for('song', song_id=song.id) }}">View</a>
+                {% if current_user %}
+                    <button onclick="selectSong({{ song.id }})">Add to My Songs</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}

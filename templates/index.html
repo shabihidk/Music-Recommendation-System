@@ -13,7 +13,8 @@
     <div class="section-title">Trending Songs</div>
     <div class="song-list">
         {% for song in trending_songs %}
-            <div class="song-item">
+            <div class="song-item" style="--delay: {{ loop.index }}">
+                <img src="/static/images/songs/{{ song.id }}.jpg" alt="{{ song.title }} cover" onerror="this.style.display='none'">
                 <h4>{{ song.title }}</h4>
                 <p>{{ song.artist }}</p>
                 <a href="{{ url_for('song', song_id=song.id) }}">View</a>
@@ -24,7 +25,8 @@
     <div class="section-title">Popular Genres</div>
     <div class="genre-list">
         {% for genre in popular_genres %}
-            <div class="genre-item">
+            <div class="genre-item" style="--delay: {{ loop.index }}">
+                <img src="/static/images/genres/{{ genre.id }}.jpg" alt="{{ genre.name }} cover" onerror="this.style.display='none'">
                 <h4>{{ genre.name }}</h4>
             </div>
         {% endfor %}
@@ -32,7 +34,7 @@
 
     <div class="section-title">Your Playlists</div>
     {% for playlist in playlists %}
-        <div class="card">
+        <div class="card" style="--delay: {{ loop.index }}">
             <h3>{{ playlist.name }}</h3>
             <p>{{ playlist.description }}</p>
             <a href="{{ url_for('playlist', playlist_id=playlist.id) }}">View Playlist</a>
