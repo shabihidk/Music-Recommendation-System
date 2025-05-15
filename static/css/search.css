@@ -1,0 +1,174 @@
+.filters {
+    background: rgba(16, 32, 27, 0.9);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group label {
+    display: block;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 0.8rem;
+    background: rgba(13, 31, 26, 0.95);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    padding-right: 2.5rem;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: #4ade80;
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+}
+
+.filter-group select option {
+    background: rgba(13, 31, 26, 0.95);
+    color: #fff;
+    padding: 0.8rem;
+}
+
+.filter-group select option:hover {
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.songs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 1rem 0;
+}
+
+.song-card {
+    background: rgba(16, 32, 27, 0.9);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(74, 222, 128, 0.1);
+    position: relative;
+}
+
+.song-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+.song-image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.song-info {
+    padding: 1.2rem;
+}
+
+.song-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.song-artist {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.song-genre {
+    color: #4ade80;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.song-duration {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #fff;
+}
+
+.play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(74, 222, 128, 0.9);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.song-card:hover .play-button {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.play-button::after {
+    content: '▶';
+    color: #0d1f1a;
+    font-size: 1.2rem;
+    margin-left: 3px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.page-button {
+    padding: 0.5rem 1rem;
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.page-button:hover {
+    background: rgba(74, 222, 128, 0.2);
+}
+
+.page-button.active {
+    background: #4ade80;
+    color: #0d1f1a;
+} 

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Music Recommender{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white">
+    <nav class="glassmorphic-nav fixed top-0 w-full z-50 px-6 py-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{{ url_for('dashboard') }}" class="text-emerald-400 text-2xl font-bold">MusicAI</a>
+            <div class="flex space-x-6">
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('search_page') }}" class="nav-link">Search</a>
+                <a href="{{ url_for('playlists') }}" class="nav-link">Playlists</a>
+                <a href="{{ url_for('history') }}" class="nav-link">History</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
+                    <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('signup') }}" class="nav-link">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-24 px-6 min-h-screen">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-gray-900 mt-12 py-8 border-t border-gray-800">
+        <div class="container mx-auto px-6 text-center text-gray-400">
+            <p>&copy; 2024 MusicAI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

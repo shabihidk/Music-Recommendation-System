@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songbih - Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a2421 0%, #0d1f1a 100%);
+        }
+
+        .login-container {
+            background: rgba(16, 32, 27, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 222, 128, 0.1);
+            margin: 2rem auto;
+        }
+
+        h1 {
+            color: #4ade80;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(16, 32, 27, 0.6);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4ade80;
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4ade80;
+            color: #0d1f1a;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #22c55e;
+            transform: translateY(-1px);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #9ca3af;
+        }
+
+        .signup-link a {
+            color: #4ade80;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Songbih</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form id="loginForm" method="POST" action="{{ url_for('login') }}">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div class="signup-link">
+            Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a>
+        </div>
+    </div>
+</body>
+</html> 
